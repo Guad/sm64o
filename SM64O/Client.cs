@@ -1,4 +1,5 @@
-using Hazel;
+
+using Lidgren.Network;
 
 namespace SM64O
 {
@@ -7,22 +8,26 @@ namespace SM64O
         public Client()
         {}
 
-        public Client(Connection conn)
+        public Client(NetConnection conn)
         {
             Connection = conn;
         }
 
-        public static implicit operator Connection(Client c)
+        public static implicit operator NetConnection(Client c)
         {
             return c.Connection;
         }
 
-        public void SendBytes(byte[] data, SendOption sendOption = SendOption.None)
+        public void SendBytes(byte[] data, NetServer server, NetDeliveryMethod m = NetDeliveryMethod.Unreliable, int channel = 0)
         {
-            Connection.SendBytes(data, sendOption);
+            var msg = server.CreateMessage();
+
+            msg.Write(data);
+            
+            Connection.SendMessage(msg, m, channel);
         }
 
-        public Connection Connection { get; private set; }
+        public NetConnection Connection { get; private set; }
         public string Name { get; set; }
         public string CharacterName { get; set; }
         public int CharacterId { get; set; }

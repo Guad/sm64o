@@ -1,6 +1,4 @@
-﻿using Hazel;
-using Hazel.Tcp;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -15,14 +13,15 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Lidgren.Network;
 
 //#pragma warning disable CS0618 // Type or member is obsolete
 namespace SM64O
 {
     public partial class Form1 : Form
     {
-        public static ConnectionListener listener;
-        public static Connection connection = null;
+        public static NetServer listener;
+        public static NetClient connection = null;
         public static Client[] playerClient = new Client[23];
 
         private List<string> _bands = new List<string>();
@@ -35,8 +34,12 @@ namespace SM64O
 
         private const int MaxChatLength = 24;
 
+        public static Form1 Instance;
+
         public Form1()
         {
+            Instance = this;
+
             InitializeComponent();
 
             string[] fileEntries = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory + "/Patches/");
@@ -86,6 +89,18 @@ namespace SM64O
             Application.Exit();
         }
 
+        // Send bytes to server
+        private void sendBytes(byte[] data, NetDeliveryMethod m = NetDeliveryMethod.Unreliable, int channel = 0)
+        {
+            if (connection == null) throw new Exception("That's not how that works");
+
+            var msg = connection.CreateMessage();
+
+            msg.Write(data);
+
+            connection.SendMessage(msg, m, channel);
+        }
+
         private void sendAllChat(string message)
         {
             if (message.Length > MaxChatLength)
@@ -112,19 +127,17 @@ namespace SM64O
 
             Array.Copy(BitConverter.GetBytes(3569280), 0, aux, 0, 4);
 
-            if (connection == null)
+            if (listener != null)
             {
                 for (int i = 0; i < Form1.playerClient.Length; i++)
                 {
                     if (Form1.playerClient[i] != null)
-                    {
-                        Form1.playerClient[i].SendBytes(payload);
-                    }
+                        Form1.playerClient[i].SendBytes(payload, listener, NetDeliveryMethod.ReliableOrdered, 1);
                 }
             }
             else
             {
-                connection.SendBytes(payload);
+                sendBytes(payload, NetDeliveryMethod.ReliableOrdered, 1);
             }
 
             Thread.Sleep(100);
@@ -134,20 +147,18 @@ namespace SM64O
                 for (int i = 0; i < Form1.playerClient.Length; i++)
                 {
                     if (Form1.playerClient[i] != null)
-                    {
-                        Form1.playerClient[i].SendBytes(aux);
-                    }
+                        Form1.playerClient[i].SendBytes(aux, listener, NetDeliveryMethod.ReliableOrdered, 1);
                 }
             }
             else
             {
-                connection.SendBytes(aux);
+                sendBytes(aux, NetDeliveryMethod.ReliableOrdered, 1);
             }
 
             Characters.setMessage(message, _memory);
         }
 
-        private void sendChatTo(string message, Connection conn)
+        private void sendChatTo(string message, NetPeer conn)
         {
             if (message.Length > MaxChatLength)
                 message = message.Substring(0, 24);
@@ -173,9 +184,9 @@ namespace SM64O
 
             Array.Copy(BitConverter.GetBytes(3569280), 0, aux, 0, 4);
 
-            conn.SendBytes(payload);
+            conn.SendBytes(payload, listener, NetDeliveryMethod.ReliableOrdered);
             Thread.Sleep(100);
-            conn.SendBytes(aux);
+            conn.SendBytes();
         }
         
         private void button1_Click(object sender, EventArgs e)
