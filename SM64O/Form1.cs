@@ -35,6 +35,8 @@ namespace SM64O
 
         private const int HandshakeDataLen = 28;
         private const int MaxChatLength = 24;
+
+        private WindowPainter _renderer;
         
         public Form1()
         {
@@ -78,6 +80,7 @@ namespace SM64O
 
             // TODO: Change this according to OS
             _memory = new WindowsEmulatorAccessor();
+            _renderer = new WindowPainter(_memory);
 
             this.Text = string.Format("SM64 Online Tool v{0}.{1}", MajorVersion, MinorVersion);
         }
@@ -183,24 +186,23 @@ namespace SM64O
         {
             try
             {
-                if (comboBox1.Text == "Project64")
+                string emu = comboBox1.Text;
+
+                _memory.Open(emu);
+                if (_memory.BaseAddress == 0 && emu == "Project64")
                 {
-                    _memory.Open("Project64");
-                    if (_memory.BaseAddress == 0)
-                    {
-                        die("Your version of Project64 is unsupported. Please use version 2.3");
-                        return;
-                    }
+                    die("Your version of Project64 is unsupported. Please use version 2.3");
+                    return;
                 }
 
-                if (comboBox1.Text == "Nemu64")
-                {
-                    _memory.Open("Nemu64");
-                }
-                if (comboBox1.Text == "Mupen64")
-                {
-                    _memory.Open("Mupen64");
-                }
+                if (!_renderer.Attach(emu))
+                    throw new ArgumentException();
+
+            }
+            catch (ArgumentException)
+            {
+                die("Renderer could not attach to the emulator!");
+                return;
             }
             catch (IndexOutOfRangeException)
             {
@@ -481,15 +483,8 @@ namespace SM64O
             if (e.Bytes.Length == 0)
                 return;
 
-            if (e.Bytes.Length == 1)
-            {
-                _memory.WriteMemory(0x367703, e.Bytes, e.Bytes.Length);
-            }
-            else
-            {
-                ReceivePacket(e.Bytes);
-                e.Recycle();
-            }
+            ReceivePacket(e.Bytes);
+            e.Recycle();
         }
 
         private void ReceivePacket(byte[] data)
@@ -500,7 +495,10 @@ namespace SM64O
             switch (type)
             {
                 case PacketType.MemoryWrite:
-                    ReceiveRawMemory(payload);
+                    if (payload.Length == 1)
+                        _memory.WriteMemory(0x367703, payload, payload.Length);
+                    else
+                        ReceiveRawMemory(payload);
                     break;
             }
         }
@@ -568,12 +566,15 @@ namespace SM64O
         {
             try
             {
-                setGamemode();
+                //setGamemode();
                 sendAllBytes(null);
+                _renderer.Draw();
             }
             catch
             {
-
+#if DEBUG
+                throw;
+#endif
             }
         }
 
@@ -999,6 +1000,11 @@ namespace SM64O
         private void checkBox2_CheckedChanged(object sender, EventArgs e)
         {
             _chatEnabled = !checkBox2.Checked;
+        }
+
+        private void Form1_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            _renderer.Dispose();
         }
     }
 }
