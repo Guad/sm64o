@@ -53,5 +53,16 @@ namespace SM64O
             lock (_bufferLock)
                 _buffer.Add(formatted);
         }
+
+        public void Flush()
+        {
+            lock (_bufferLock)
+            {
+                if (_buffer.Count == 0) return;
+                
+                File.AppendAllLines("network.log", _buffer.ToArray());
+                _buffer.Clear();
+            }
+        }
     }
 }
