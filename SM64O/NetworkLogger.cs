@@ -1,12 +1,14 @@
 using System;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace SM64O
 {
     public class NetworkLogger
     {
-        public static Lazy<NetworkLogger> Singleton = new Lazy<NetworkLogger>(() => return new NetworkLogger());
+        public static Lazy<NetworkLogger> Singleton = new Lazy<NetworkLogger>(() => new NetworkLogger());
 
         public NetworkLogger()
         {
@@ -26,7 +28,7 @@ namespace SM64O
             string data = string.Join(" ", packet.Select(b => b.ToString("X")));
 
             string formatted = string.Format("OUT [{0}:{1}:{2}.{3}}] {{{4}}} ({5}): {6}",
-                now.Hours, now.Minutes, now.Seconds, now.Milliseconds,
+                now.Hour, now.Minute, now.Second, now.Millisecond,
                 origin,
                 data.Length,
                 data
@@ -44,7 +46,7 @@ namespace SM64O
             string data = string.Join(" ", packet.Select(b => b.ToString("X")));
 
             string formatted = string.Format("IN  [{0}:{1}:{2}.{3}}] {{{4}}} ({5}): {6}",
-                now.Hours, now.Minutes, now.Seconds, now.Milliseconds,
+                now.Hour, now.Minute, now.Second, now.Millisecond,
                 origin,
                 data.Length,
                 data

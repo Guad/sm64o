@@ -347,7 +347,7 @@ namespace SM64O
                         int playerIDB = i + 2;
                         byte[] playerID = new byte[] {(byte) playerIDB};
                         Thread.Sleep(500);
-                        playerClient[i].SendBytes(PacketType.MemoryWrite, playerID, , origin: "NewConnectionHandler");
+                        playerClient[i].SendBytes(PacketType.MemoryWrite, playerID, origin: "NewConnectionHandler");
                         string character = "Unk Char";
 
                         if (e.HandshakeData != null && e.HandshakeData.Length > 3)

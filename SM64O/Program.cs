@@ -16,9 +16,9 @@ namespace SM64O
         {
             System.AppDomain.CurrentDomain.UnhandledException += UnhandledException;
 
-            var timer = new System.Timer(1000);
-            timer.AutoReset = true;
-            timer.Elapsed += (s, e) =>
+            var timer = new Timer();
+            timer.Interval = 1000;
+            timer.Tick += (s, e) =>
             {
                 NetworkLogger.Singleton.Value.Flush();
             };
