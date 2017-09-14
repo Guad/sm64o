@@ -16,6 +16,9 @@ namespace SM64O
         {
             System.AppDomain.CurrentDomain.UnhandledException += UnhandledException;
 
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+
             var timer = new Timer();
             timer.Interval = 1000;
             timer.Tick += (s, e) =>
@@ -25,9 +28,6 @@ namespace SM64O
 
             timer.Start();
 
-
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
             do
             {
                 ResetMe = false;
@@ -44,7 +44,7 @@ namespace SM64O
             Exception e = (Exception) args.ExceptionObject;
 
             // TODO: Either use logging library or write our own
-            System.IO.File.AppendAllText("errors.log", string.Format("[{0}] {1}", DateTime.Now, e));
+            System.IO.File.AppendAllText("errors.log", string.Format("[{0}] {1}\n", DateTime.Now, e));
         }
     }
 }

@@ -27,7 +27,7 @@ namespace SM64O
             DateTime now = DateTime.UtcNow;
             string data = string.Join(" ", packet.Select(b => b.ToString("X")));
 
-            string formatted = string.Format("OUT [{0}:{1}:{2}.{3}}] {{{4}}} ({5}): {6}",
+            string formatted = string.Format("OUT [{0}:{1}:{2}.{3}] {{{4}}} ({5}): {6}",
                 now.Hour, now.Minute, now.Second, now.Millisecond,
                 origin,
                 data.Length,
@@ -45,7 +45,7 @@ namespace SM64O
             DateTime now = DateTime.UtcNow;
             string data = string.Join(" ", packet.Select(b => b.ToString("X")));
 
-            string formatted = string.Format("IN  [{0}:{1}:{2}.{3}}] {{{4}}} ({5}): {6}",
+            string formatted = string.Format("IN  [{0}:{1}:{2}.{3}] {{{4}}} ({5}): {6}",
                 now.Hour, now.Minute, now.Second, now.Millisecond,
                 origin,
                 data.Length,
