@@ -18,11 +18,15 @@ namespace SM64O
             return c.Connection;
         }
 
-        public void SendBytes(PacketType type, byte[] data, SendOption sendOption = SendOption.None)
+        public void SendBytes(PacketType type, byte[] data,
+            SendOption sendOption = SendOption.None, 
+            string origin = "unk")
         {
             byte[] buffer = new byte[data.Length + 1];
             buffer[0] = (byte) type;
             Array.Copy(data, 0, buffer, 1, data.Length);
+
+            NetworkLogger.Singleton.Value.LogOutgoingPacket(buffer, origin);
 
             Connection.SendBytes(buffer, sendOption);
         }

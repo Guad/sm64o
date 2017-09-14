@@ -119,11 +119,11 @@ namespace SM64O
             {
                 for (int i = 0; i < playerClient.Length; i++)
                     if (playerClient[i] != null)
-                        playerClient[i].SendBytes(PacketType.ChatMessage, payload, SendOption.Reliable);
+                        playerClient[i].SendBytes(PacketType.ChatMessage, payload, SendOption.Reliable, origin: "sendAllChat");
             }
             else
             {
-                connection.SendBytes(PacketType.ChatMessage, payload, SendOption.Reliable);
+                connection.SendBytes(PacketType.ChatMessage, payload, SendOption.Reliable, origin: "sendAllChat");
             }
 
 
@@ -158,7 +158,7 @@ namespace SM64O
 
             Array.Copy(usernameBytes, 0, payload, 1 + messageBytes.Length + 1, usernameBytes.Length);
 
-            conn.SendBytes(PacketType.ChatMessage, payload, SendOption.Reliable);
+            conn.SendBytes(PacketType.ChatMessage, payload, SendOption.Reliable, origin: "sendChatTo");
         }
         
         private void button1_Click(object sender, EventArgs e)
@@ -347,7 +347,7 @@ namespace SM64O
                         int playerIDB = i + 2;
                         byte[] playerID = new byte[] {(byte) playerIDB};
                         Thread.Sleep(500);
-                        playerClient[i].SendBytes(PacketType.MemoryWrite, playerID);
+                        playerClient[i].SendBytes(PacketType.MemoryWrite, playerID, , origin: "NewConnectionHandler");
                         string character = "Unk Char";
 
                         if (e.HandshakeData != null && e.HandshakeData.Length > 3)
@@ -490,6 +490,8 @@ namespace SM64O
 
         private void ReceivePacket(byte[] data)
         {
+            NetworkLogger.Singleton.Value.LogIncomingPacket(data, "ReceivePacket");
+
             PacketType type = (PacketType) data[0];
             byte[] payload = data.Skip(1).ToArray();
 
@@ -528,7 +530,7 @@ namespace SM64O
                 for (int i = 0; i < Form1.playerClient.Length; i++)
                 {
                     if (Form1.playerClient[i] != null)
-                        Form1.playerClient[i].SendBytes(PacketType.ChatMessage, data);
+                        Form1.playerClient[i].SendBytes(PacketType.ChatMessage, data, origin: "chatResend");
                 }
 
             if (!_chatEnabled) return;
@@ -653,7 +655,7 @@ namespace SM64O
             byte[] finalOffset = new byte[howMany + 4];
             writeOffset.CopyTo(finalOffset, 0);
             buffer.CopyTo(finalOffset, 4);
-            conn.SendBytes(PacketType.MemoryWrite, finalOffset);
+            conn.SendBytes(PacketType.MemoryWrite, finalOffset, origin: "readAndSend");
 
             Debug.WriteLine("Sending packet of length " + howMany);
         }
