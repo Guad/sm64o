@@ -35,6 +35,8 @@ namespace SM64O
 
         private const int HandshakeDataLen = 28;
         private const int MaxChatLength = 24;
+
+        private int _updateRate = 33;
         
         public Form1()
         {
@@ -280,8 +282,14 @@ namespace SM64O
             }
 
             checkBox1.Enabled = false;
+            /*
+            Thread tick = new Thread(tick_thread);
+            tick.IsBackground = true;
+            tick.Start();
+            */
 
-            timer1.Enabled = true;
+            tick_thread();
+
             button1.Enabled = false;
 
             numericUpDown1.Enabled = true;
@@ -564,8 +572,9 @@ namespace SM64O
         {
             try
             {
-                setGamemode();
-                sendAllBytes(null);
+                NetworkLogger.Singleton.Value.LogMisc("Entered Tick");
+                sendAllBytes();
+                NetworkLogger.Singleton.Value.LogMisc("Left Tick");
             }
             catch
             {
@@ -574,7 +583,7 @@ namespace SM64O
         }
 
         // not touching this
-        public void sendAllBytes(Connection conn)
+        public void sendAllBytes()
         {
             int freeRamLength = getRamLength(0x367400);
 
@@ -700,7 +709,8 @@ namespace SM64O
 
         private void numericUpDown1_ValueChanged(object sender, EventArgs e)
         {
-            timer1.Interval = (int)numericUpDown1.Value;
+            //timer1.Interval = (int)numericUpDown1.Value;
+            _updateRate = (int) numericUpDown1.Value;
         }
 
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
@@ -1053,6 +1063,21 @@ namespace SM64O
         private void button4_Click(object sender, EventArgs e)
         {
             resetGame();
+        }
+
+        private void tick_thread()
+        {
+            Task.Run(async () =>
+            {
+                while (true)
+                {
+                    NetworkLogger.Singleton.Value.LogMisc("Entered Tick");
+                    sendAllBytes();
+                    NetworkLogger.Singleton.Value.LogMisc("Left Tick");
+
+                    await Task.Delay(_updateRate);
+                }
+            });
         }
     }
 }

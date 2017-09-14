@@ -56,6 +56,21 @@ namespace SM64O
                 _buffer.Add(formatted);
         }
 
+        public void LogMisc(string text)
+        {
+            if (!Enabled) return;
+
+            DateTime now = DateTime.UtcNow;
+
+            string formatted = string.Format("IN  [{0:00}:{1:00}:{2:00}.{3:000}] {4}",
+                now.Hour, now.Minute, now.Second, now.Millisecond,
+                text
+            );
+
+            lock (_buffer)
+                _buffer.Add(formatted);
+        }
+
         public void Flush()
         {
             lock (_bufferLock)
