@@ -43,7 +43,7 @@ namespace SM64O
             DateTime now = DateTime.UtcNow;
             string data = string.Join(" ", packet.Select(b => b.ToString("X")));
 
-            string formatted = string.Format("OUT [{0}:{1}:{2}.{3}}] {{{4}}} ({5}): {6}",
+            string formatted = string.Format("IN  [{0}:{1}:{2}.{3}}] {{{4}}} ({5}): {6}",
                 now.Hours, now.Minutes, now.Seconds, now.Milliseconds,
                 origin,
                 data.Length,
@@ -59,7 +59,7 @@ namespace SM64O
             lock (_bufferLock)
             {
                 if (_buffer.Count == 0) return;
-                
+
                 File.AppendAllLines("network.log", _buffer.ToArray());
                 _buffer.Clear();
             }
