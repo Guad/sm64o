@@ -95,7 +95,7 @@ namespace SM64O
             {
                 if (_buffer.Count == 0) return;
 
-                File.AppendAllLines("network.log", _buffer.ToArray());
+                File.AppendAllLines("network.log" + (DateTime.Now.Minute / 10), _buffer.ToArray());
                 _buffer.Clear();
             }
         }
