@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -13,6 +14,7 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -21,13 +23,15 @@ namespace SM64O
 {
     public partial class Form1 : Form
     {
-        public static ConnectionListener listener;
+        public static ConnectionListener listener = null;
         public static Connection connection = null;
         public static Client[] playerClient = new Client[23];
 
+        private ListBox _dynamicChatbox;
         private List<string> _bands = new List<string>();
 
         private bool _chatEnabled = true;
+        private int _updateRate = 16;
 
         private IEmulatorAccessor _memory;
         private const int MinorVersion = 3;
@@ -36,18 +40,23 @@ namespace SM64O
         private const int HandshakeDataLen = 28;
         private const int MaxChatLength = 24;
 
-        private int _updateRate = 33;
-        
+        private UPnPWrapper _upnp;
+
         public Form1()
         {
+            listener = null;
+            connection = null;
+            playerClient = new Client[23];
+
+            _upnp = new UPnPWrapper();
+            _upnp.Initialize();
+
             InitializeComponent();
 
             string[] fileEntries = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory + "/Patches/");
 
             foreach (var file in fileEntries)
             {
-                int offset = Convert.ToInt32(Path.GetFileName(file), 16);
-
                 byte[] buffer = File.ReadAllBytes(file);
 
                 //File.Copy(AppDomain.CurrentDomain.BaseDirectory + "/Patches/" + Path.GetFileName(file), AppDomain.CurrentDomain.BaseDirectory + "/Ressources/" + Path.GetFileName(file));
@@ -86,8 +95,51 @@ namespace SM64O
 
         private void die(string msg)
         {
-            MessageBox.Show(this, msg, "Critical Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(null, msg, "Critical Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             Application.Exit();
+        }
+
+        private string getRomName()
+        {
+            string romname = null;
+            byte[] buffer = new byte[64];
+
+            switch (comboBox1.Text)
+            {
+                case "Project64":
+                    // Super Mario 64 (u) - Project 64 v2.3.3
+                    string windowName = _memory.WindowName;
+
+
+                    for (int i = windowName.Length - 1; i >= 0; i--)
+                    {
+                        if (windowName[i] == '-')
+                        {
+                            romname = windowName.Substring(0, i).Trim();
+                            break;
+                        }
+                    }
+                    break;
+                case "Mupen64":
+                    string wndname = _memory.WindowName;
+
+                    for (int i = wndname.Length - 1; i >= 0; i--)
+                    {
+                        if (wndname[i] == '-')
+                        {
+                            romname = wndname.Substring(0, i).Trim();
+                            break;
+                        }
+                    }
+                    break;
+                case "Nemu64":
+                    _memory.ReadMemoryAbs(_memory.MainModuleAddress + 0x3C8A10C, buffer, buffer.Length);
+
+                    romname = Encoding.ASCII.GetString(buffer, 0, Array.IndexOf(buffer, (byte)0));
+                    break;
+            }
+
+            return romname;
         }
 
         private void sendAllChat(string message)
@@ -129,8 +181,18 @@ namespace SM64O
             }
 
 
-            if (_chatEnabled)
+            if (_chatEnabled && listener != null)
+            {
                 Characters.setMessage(message, _memory);
+
+                if (_dynamicChatbox != null)
+                {
+                    _dynamicChatbox.Items.Insert(0, string.Format("{0}: {1}", "HOST", message));
+
+                    if (_dynamicChatbox.Items.Count > 10)
+                        _dynamicChatbox.Items.RemoveAt(10);
+                }
+            }
         }
 
         private void sendChatTo(string message, Connection conn)
@@ -196,11 +258,22 @@ namespace SM64O
             {
                 if (checkBox1.Checked)
                 {
+                    int port = (int) numericUpDown2.Value;
+
+                    if (_upnp.UPnPAvailable)
+                    {
+                        // TODO: Add info to toolstrip
+                        _upnp.AddPortRule(port, false, "SM64O");
+                        textBox5.Text = _upnp.GetExternalIp();
+                    }
+
+
                     panel2.Enabled = true;
-                    listener = new UdpConnectionListener(new NetworkEndPoint(IPAddress.Any, (int) numericUpDown2.Value));
+                    listener = new UdpConnectionListener(new NetworkEndPoint(IPAddress.Any, port));
                     listener.NewConnection += NewConnectionHandler;
                     listener.Start();
                     
+                    insertChatBox();
 
                     playerCheckTimer.Start();
 
@@ -288,16 +361,16 @@ namespace SM64O
             tick.Start();
             */
 
-            tick_thread();
-
+            timer1_Tick();
             button1.Enabled = false;
 
             numericUpDown1.Enabled = true;
 
             chatBox.Enabled = true;
             button3.Enabled = true;
+            numericUpDown2.Enabled = false;
 
-            textBox5.Enabled = false;
+            textBox5.ReadOnly = true;
 
             comboBox1.Enabled = false;
             //comboBox2.Enabled = false;
@@ -308,20 +381,75 @@ namespace SM64O
 
             Characters.setCharacter(comboBox2.SelectedItem.ToString(), _memory);
 
-            string[] fileEntries = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory + "/Ressources/");
+            loadPatches();
 
-            foreach (var file in fileEntries)
-            {
-                int offset = Convert.ToInt32(Path.GetFileName(file), 16);
-
-                byte[] buffer = File.ReadAllBytes(file);
-                _memory.WriteMemory(offset, buffer, buffer.Length);
-            }
+            toolStripStatusLabel1.Text = "Loaded ROM " + getRomName();
 
             if (checkBox1.Checked)
             {
                 writeValue(new byte[] { 0x00, 0x00, 0x00, 0x01 }, 0x365FFC);
-            }            
+            }
+
+            Settings sets = new Settings();
+
+            sets.LastIp = checkBox1.Checked ? "" : textBox5.Text;
+            sets.LastPort = (int) numericUpDown2.Value;
+            sets.Username = usernameBox.Text;
+
+            sets.LastEmulator = comboBox1.SelectedIndex;
+            sets.LastCharacter = comboBox2.SelectedIndex;
+
+            Settings.Save(sets, "settings.xml");
+        }
+
+        private void loadPatches()
+        {
+            string[] fileEntries = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory + "/Ressources/");
+
+            foreach (var file in fileEntries)
+            {
+                string fname = Path.GetFileName(file);
+                int offset;
+
+                if (int.TryParse(fname, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out offset))
+                {
+                    byte[] buffer = File.ReadAllBytes(file);
+                    _memory.WriteMemory(offset, buffer, buffer.Length);
+                }
+                else if (fname.Contains('.'))
+                {
+                    // Treat as Regex
+                    int separator = fname.LastIndexOf(".", StringComparison.Ordinal);
+                    string regexPattern = fname.Substring(0, separator);
+                    string address = fname.Substring(separator + 1, fname.Length - separator - 1);
+                    string romname = getRomName();
+
+                    regexPattern = regexPattern.Replace("@", "\\");
+                    bool invert = false;
+
+                    if (regexPattern[0] == '!')
+                    {
+                        regexPattern = regexPattern.Substring(1);
+                        invert = true;
+                    }
+
+                    if (romname == null)
+                        continue;
+
+                    bool isMatch = Regex.IsMatch(romname, regexPattern,
+                        RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+
+                    if ((isMatch && !invert) || (!isMatch && invert))
+                    {
+                        offset = int.Parse(address, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+
+                        byte[] buffer = File.ReadAllBytes(file);
+                        _memory.WriteMemory(offset, buffer, buffer.Length);
+                    }
+                }
+
+                
+            }
         }
 
         private void ConnectionOnDisconnected(object sender, DisconnectedEventArgs disconnectedEventArgs)
@@ -356,7 +484,7 @@ namespace SM64O
                         byte[] playerID = new byte[] {(byte) playerIDB};
                         Thread.Sleep(500);
                         playerClient[i].SendBytes(PacketType.MemoryWrite, playerID, origin: "NewConnectionHandler");
-                        string character = "Unk Char";
+                        string character = "custom ";
 
                         if (e.HandshakeData != null && e.HandshakeData.Length > 3)
                         {
@@ -370,34 +498,7 @@ namespace SM64O
                                 byte charIndex = handshakeData[1];
                                 playerClient[i].MinorVersion = verIndex;
                                 playerClient[i].CharacterId = charIndex;
-
-                                switch (charIndex)
-                                {
-                                    case 0:
-                                        character = "Mario";
-                                        break;
-                                    case 1:
-                                        character = "Luigi";
-                                        break;
-                                    case 2:
-                                        character = "Yoshi";
-                                        break;
-                                    case 3:
-                                        character = "Wario";
-                                        break;
-                                    case 4:
-                                        character = "Peach";
-                                        break;
-                                    case 5:
-                                        character = "Toad";
-                                        break;
-                                    case 6:
-                                        character = "Waluigi";
-                                        break;
-                                    case 7:
-                                        character = "Rosalina";
-                                        break;
-                                }
+                                character = getCharacterName(charIndex);
                             }
                             if (e.HandshakeData.Length >= 3)
                             {
@@ -449,6 +550,8 @@ namespace SM64O
 
         private void removePlayer(int player)
         {
+            if (player == -1 || playerClient[player] == null) return;
+
             string msg = string.Format("{0} left", playerClient[player].Name);
             if (msg.Length > MaxChatLength)
                 msg = msg.Substring(0, 24);
@@ -473,16 +576,11 @@ namespace SM64O
         {
             var conn = (Connection) sender;
 
-            for (int i = 0; i < playerClient.Length; i++)
-            {
-                if (playerClient[i] != null && playerClient[i].Connection == conn)
-                {
-                    playerClient[i].LastUpdate = DateTime.Now;
-                    break;
-                }
-            }
+            int id = getClient(conn);
+            if (id != -1)
+                playerClient[id].LastUpdate = DateTime.Now;
 
-            ReceivePacket(e.Bytes);
+            ReceivePacket(conn, e.Bytes);
 
             e.Recycle();
         }
@@ -492,11 +590,11 @@ namespace SM64O
             if (e.Bytes.Length == 0)
                 return;
 
-            ReceivePacket(e.Bytes);
+            ReceivePacket((Connection) sender, e.Bytes);
             e.Recycle();
         }
 
-        private void ReceivePacket(byte[] data)
+        private void ReceivePacket(Connection sender, byte[] data)
         {
             NetworkLogger.Singleton.Value.LogIncomingPacket(data, "ReceivePacket");
 
@@ -510,6 +608,21 @@ namespace SM64O
                     break;
                 case PacketType.ChatMessage:
                     ReceiveChatMessage(payload);
+                    break;
+                case PacketType.CharacterSwitch:
+                    byte newCharacter = payload[0];
+                    string newCharName = getCharacterName(newCharacter);
+                    int id = getClient(sender);
+
+                    if (id != -1)
+                    {
+                        playerClient[id].CharacterId = newCharacter;
+                        playerClient[id].CharacterName = newCharName;
+
+                        //int oldPos = listBox1.Items.IndexOf(playerClient[id]);
+                        listBox1.Refresh();
+                    }
+
                     break;
             }
         }
@@ -555,10 +668,18 @@ namespace SM64O
 
             if (listener == null) // We're not the host
             {
-                listBox1.Items.Add(string.Format("{0}: {1}", sender, message));
+                listBox1.Items.Insert(0, string.Format("{0}: {1}", sender, message));
                 
                 if (listBox1.Items.Count > 10)
-                    listBox1.Items.RemoveAt(0);
+                    listBox1.Items.RemoveAt(10);
+            }
+
+            if (_dynamicChatbox != null)// We're the host
+            {
+                _dynamicChatbox.Items.Insert(0, string.Format("{0}: {1}", sender, message));
+
+                if (_dynamicChatbox.Items.Count > 10)
+                    _dynamicChatbox.Items.RemoveAt(10);
             }
         }
 
@@ -568,18 +689,17 @@ namespace SM64O
             _memory.WriteMemory(offset, buffer, buffer.Length);
         }
 
-        private void timer1_Tick(object sender, EventArgs e)
+        private void timer1_Tick()
         {
-            try
+            Task.Run(async () =>
             {
-                NetworkLogger.Singleton.Value.LogMisc("Entered Tick");
-                sendAllBytes();
-                NetworkLogger.Singleton.Value.LogMisc("Left Tick");
-            }
-            catch
-            {
+                while (true)
+                {
+                    sendAllBytes();
 
-            }
+                    await Task.Delay(_updateRate);
+                }
+            });
         }
 
         // not touching this
@@ -616,23 +736,16 @@ namespace SM64O
 
                 buffer = originalBuffer;
 
-                if (playerClient != null)
+                if (listener != null)
                 {
-                    if (checkBox1.Checked)
+                    for (int p = 0; p < playerClient.Length; p++)
                     {
-                        for (int p = 0; p < playerClient.Length; p++)
-                        {
-                            if (playerClient[p] != null)
-                            {
-                                readAndSend(offsetsToReadFrom[i], offsetsToWriteTo[i + 8], offsetsToWriteToLength[i + 4], playerClient[p]);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        readAndSend(offsetsToReadFrom[i], offsetsToWriteTo[i + 8], offsetsToWriteToLength[i + 4], connection);
+                        if (playerClient[p] != null)
+                            readAndSend(offsetsToReadFrom[i], offsetsToWriteTo[i + 8], offsetsToWriteToLength[i + 4], playerClient[p]);
                     }
                 }
+                else
+                    readAndSend(offsetsToReadFrom[i], offsetsToWriteTo[i + 8], offsetsToWriteToLength[i + 4], connection);
 
             }
         }
@@ -709,8 +822,7 @@ namespace SM64O
 
         private void numericUpDown1_ValueChanged(object sender, EventArgs e)
         {
-            //timer1.Interval = (int)numericUpDown1.Value;
-            _updateRate = (int) numericUpDown1.Value;
+            _updateRate = (int)numericUpDown1.Value;
         }
 
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
@@ -718,7 +830,6 @@ namespace SM64O
             if (checkBox1.Checked)
             {
                 textBox5.Text = "";
-                textBox5.Enabled = false;
                 usernameBox.Text = "";
                 usernameBox.Enabled = false;
 
@@ -727,15 +838,23 @@ namespace SM64O
                 button1.Text = "Create Server!";
                 usernameBox.Enabled = false;
                 panel2.Enabled = true;
+                textBox5.ReadOnly = true;
+                button1.Enabled = true;
+
+                if (_upnp.UPnPAvailable)
+                    textBox5.Text = _upnp.GetExternalIp();
+                else textBox5.Text = "";
             }
             else
             {
-                textBox5.Enabled = true;
                 usernameBox.Enabled = true;
 
                 button1.Text = "Connect to server!";
+                textBox5.ReadOnly = false;
+                textBox5.Text = "";
                 usernameBox.Enabled = true;
                 panel2.Enabled = false;
+                button1.Enabled = false;
             }
         }
 
@@ -797,10 +916,15 @@ namespace SM64O
 
         private void button2_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("Super Mario 64 Online made by Kaze Emanuar and MelonSpeedruns!"
+            MessageBox.Show("Super Mario 64 Online team"
                 + Environment.NewLine
+                + "Kaze Emanuar"
                 + Environment.NewLine
-                + "Thanks to Guad for the bug fixes!"
+                + "MelonSpeedruns"
+                + Environment.NewLine
+                + "Guad"
+                + Environment.NewLine
+                + "merlish"
                 + Environment.NewLine
                 + Environment.NewLine
                 + "Luigi 3D Model created by: "
@@ -833,6 +957,18 @@ namespace SM64O
             comboBox1.SelectedIndex = 0;
             comboBox2.SelectedIndex = 0;
             gamemodeBox.SelectedIndex = 0;
+
+            Settings sets = Settings.Load("settings.xml");
+
+            if (sets != null)
+            {
+                textBox5.Text = sets.LastIp;
+                numericUpDown2.Value = sets.LastPort;
+                usernameBox.Text = sets.Username;
+
+                comboBox1.SelectedIndex = sets.LastEmulator;
+                comboBox2.SelectedIndex = sets.LastCharacter;
+            }
         }
 
         public void setGamemode()
@@ -852,7 +988,6 @@ namespace SM64O
             _memory.WriteMemory(0x365FF7, buffer, buffer.Length);
 
             if (playerClient != null)
-            {
                 for (int p = 0; p < playerClient.Length; p++)
                 {
                     if (playerClient[p] != null)
@@ -860,13 +995,12 @@ namespace SM64O
                         readAndSend(0x365FF4, 0x365FF4, 4, playerClient[p]);
                     }
                 }
-            }
 
         }
 
         private void numericUpDown3_ValueChanged(object sender, EventArgs e)
         {
-            playerClient = new Client[(int)numericUpDown3.Value - 1];
+            playerClient = new Client[(int)numericUpDown3.Value];
         }
 
         private void button3_Click(object sender, EventArgs e)
@@ -926,19 +1060,7 @@ namespace SM64O
                                      playerClient.Length;
             }
         }
-
-        private void usernameBox_TextChanged(object sender, EventArgs e)
-        {
-            if (textBox5.Text != "")
-            {
-                button1.Enabled = true;
-            }
-            else
-            {
-                button1.Enabled = false;
-            }
-        }
-
+        
         private Random _r = new Random();
         private string getRandomUsername()
         {
@@ -948,8 +1070,8 @@ namespace SM64O
                 "BonelessPizza",
                 "WOAH",
                 "MahBoi",
-                "SFShoutouts",
-                "clamav",
+                "Shoutouts",
+                "Sigmario",
                 "HeHasNoGrace",
                 "Memetopia",
                 "ShrekIsLove",
@@ -972,7 +1094,7 @@ namespace SM64O
                     removePlayer(i);
                 }
                 else if (playerClient[i].LastUpdate.HasValue &&
-                         DateTime.Now.Subtract(playerClient[i].LastUpdate.Value).TotalMilliseconds > 2000)
+                         DateTime.Now.Subtract(playerClient[i].LastUpdate.Value).TotalMilliseconds > 3000)
                 {
                     playerClient[i].Connection.Close();
                     removePlayer(i);
@@ -1010,6 +1132,9 @@ namespace SM64O
                 return; // We are not in a server yet
 
             Characters.setCharacterAll(comboBox2.SelectedIndex + 1, _memory);
+
+            if (connection != null) // we are a client, notify host to update playerlist
+                connection.SendBytes(PacketType.CharacterSwitch, new byte[]{ (byte) (comboBox2.SelectedIndex) });
         }
 
         private void removeAllPlayers()
@@ -1029,6 +1154,23 @@ namespace SM64O
         private void resetGame()
         {
             if (!_memory.Attached) return;
+
+            if (listener != null)
+            {
+                for (int i = 0; i < playerClient.Length; i++)
+                {
+                    if (playerClient[i] != null)
+                        playerClient[i].Connection.Close();
+                }
+
+                listener.Close();
+                listener.Dispose();
+            }
+            else if (connection != null)
+            {
+                connection.Close();
+                connection.Dispose();
+            }
 
             byte[] buffer = new byte[4];
 
@@ -1053,11 +1195,15 @@ namespace SM64O
             buffer[3] = 0x00;
 
             _memory.WriteMemory(0x38eee0, buffer, buffer.Length);
+
+            Program.ResetMe = true;
+            Close();
         }
 
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
             removeAllPlayers();
+            closePort();
         }
 
         private void button4_Click(object sender, EventArgs e)
@@ -1065,19 +1211,72 @@ namespace SM64O
             resetGame();
         }
 
-        private void tick_thread()
+        private string getCharacterName(int id)
         {
-            Task.Run(async () =>
+            string character = "custom";
+            switch (id)
             {
-                while (true)
-                {
-                    NetworkLogger.Singleton.Value.LogMisc("Entered Tick");
-                    sendAllBytes();
-                    NetworkLogger.Singleton.Value.LogMisc("Left Tick");
+                case 0:
+                    character = "Mario";
+                    break;
+                case 1:
+                    character = "Luigi";
+                    break;
+                case 2:
+                    character = "Yoshi";
+                    break;
+                case 3:
+                    character = "Wario";
+                    break;
+                case 4:
+                    character = "Peach";
+                    break;
+                case 5:
+                    character = "Toad";
+                    break;
+                case 6:
+                    character = "Waluigi";
+                    break;
+                case 7:
+                    character = "Rosalina";
+                    break;
+            }
 
-                    await Task.Delay(_updateRate);
-                }
-            });
+            return character;
+        }
+
+        private int getClient(Connection conn)
+        {
+            for (int i = 0; i < playerClient.Length; i++)
+            {
+                if (playerClient[i] != null && playerClient[i].Connection == conn)
+                    return i;
+            }
+
+            return -1;
+        }
+
+        private void insertChatBox()
+        {
+            // 200 / 2 + 10
+            listBox1.Size = new Size(268, 95);
+
+            _dynamicChatbox = new ListBox();
+            
+            _dynamicChatbox.Location = new Point(13, 84 + 100);
+            _dynamicChatbox.Size = new Size(268, 95);
+            _dynamicChatbox.Enabled = false;
+
+            this.panel2.Controls.Add(_dynamicChatbox);
+        }
+
+        private void closePort()
+        {
+            if (_upnp != null)
+            {
+                _upnp.RemoveOurRules();
+                _upnp.StopDiscovery();
+            }
         }
     }
 }

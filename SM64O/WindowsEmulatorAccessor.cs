@@ -19,10 +19,17 @@ namespace SM64O
 
         private int baseAddress;
         private IntPtr processHandle;
+        private Process process;
+        private int mainModuleAdd;
 
         public int BaseAddress
         {
             get { return baseAddress; }
+        }
+
+        public int MainModuleAddress
+        {
+            get { return mainModuleAdd; }
         }
 
         private bool _attached;
@@ -32,13 +39,23 @@ namespace SM64O
             private set { _attached = value; }
         }
 
+        public string WindowName
+        {
+            get
+            {
+                return process.MainWindowTitle;
+            }
+        }
+
         public void Open(string processName)
         {
-            Process process = Process.GetProcessesByName(processName)[0];
+            process = Process.GetProcessesByName(processName)[0];
 
-            baseAddress = ReadWritingMemory.GetBaseAddress(processName, 4096, 4);
+            baseAddress = ReadWritingMemory.GetBaseAddress(processName, 1024, 4);
 
             processHandle = OpenProcess(0x1F0FFF, true, process.Id);
+
+            mainModuleAdd = process.Modules[0].BaseAddress.ToInt32();
 
             Attached = true;
         }
@@ -54,6 +71,20 @@ namespace SM64O
         {
             int bytesRead = 0;
             ReadProcessMemory((int)processHandle, baseAddress + offset, buffer, bufferLength, ref bytesRead);
+            return bytesRead;
+        }
+
+        public int WriteMemoryAbs(int address, byte[] buffer, int bufferLength)
+        {
+            int bytesWritten = 0;
+            WriteProcessMemory((int)processHandle, address, buffer, bufferLength, ref bytesWritten);
+            return bytesWritten;
+        }
+
+        public int ReadMemoryAbs(int address, byte[] buffer, int bufferLength)
+        {
+            int bytesRead = 0;
+            ReadProcessMemory((int)processHandle, address, buffer, bufferLength, ref bytesRead);
             return bytesRead;
         }
     }
