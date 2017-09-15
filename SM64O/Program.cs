@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Mono.Nat;
+using Timer = System.Windows.Forms.Timer;
 
 namespace SM64O
 {

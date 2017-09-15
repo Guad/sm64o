@@ -716,6 +716,8 @@ namespace SM64O
 
             byte[] buffer = originalBuffer;
 
+            NetworkLogger.Singleton.Value.LogMemory(buffer, 0x367400);
+
             for (int i = 0; i < freeRamLength; i += 12)
             {
                 buffer = buffer.Skip(0 + i).Take(4).ToArray();

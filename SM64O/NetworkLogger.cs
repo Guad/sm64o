@@ -56,6 +56,24 @@ namespace SM64O
                 _buffer.Add(formatted);
         }
 
+        public void LogMemory(byte[] packet, int offset)
+        {
+            if (!Enabled) return;
+
+            DateTime now = DateTime.UtcNow;
+            string data = string.Join(" ", packet.Select(b => b.ToString("X")));
+
+            string formatted = string.Format("MEM [{0:00}:{1:00}:{2:00}.{3:000}] {{ {4:x} }} ({5}): {6}",
+                now.Hour, now.Minute, now.Second, now.Millisecond,
+                offset,
+                data.Length,
+                data
+            );
+
+            lock (_bufferLock)
+                _buffer.Add(formatted);
+        }
+
         public void LogMisc(string text)
         {
             if (!Enabled) return;
