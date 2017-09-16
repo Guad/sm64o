@@ -41,6 +41,7 @@ namespace SM64O
         private const int MaxChatLength = 24;
 
         private UPnPWrapper _upnp;
+        private bool _closing = false;
 
         public Form1()
         {
@@ -689,13 +690,22 @@ namespace SM64O
             _memory.WriteMemory(offset, buffer, buffer.Length);
         }
 
+
+        private Task _mainTask = null;
         private void timer1_Tick()
         {
-            Task.Run(async () =>
+            _mainTask = Task.Run(async () =>
             {
-                while (true)
+                while (!_closing)
                 {
-                    sendAllBytes();
+                    try
+                    {
+                        sendAllBytes();
+                    }
+                    catch (Exception ex)
+                    {
+                        Program.LogException(ex);
+                    }
 
                     await Task.Delay(_updateRate);
                 }
@@ -705,21 +715,24 @@ namespace SM64O
         // not touching this
         public void sendAllBytes()
         {
-            int freeRamLength = getRamLength(0x367400);
+            //int freeRamLength = getRamLength(0x367400);
+            const int len = 0x240;
 
-            int[] offsetsToReadFrom = new int[freeRamLength];
-            int[] offsetsToWriteToLength = new int[freeRamLength];
-            int[] offsetsToWriteTo = new int[freeRamLength];
+            int[] offsetsToReadFrom = new int[len];
+            int[] offsetsToWriteToLength = new int[len];
+            int[] offsetsToWriteTo = new int[len];
 
-            byte[] originalBuffer = new byte[freeRamLength];
+            byte[] originalBuffer = new byte[len];
             _memory.ReadMemory(0x367400, originalBuffer, originalBuffer.Length);
-
             byte[] buffer = originalBuffer;
 
             NetworkLogger.Singleton.Value.LogMemory(buffer, 0x367400);
 
-            for (int i = 0; i < freeRamLength; i += 12)
+            for (int i = 0; i < len; i += 12)
             {
+                if ((buffer[i] | buffer[i + 1] | buffer[i + 2] | buffer[i + 3]) == 0)
+                    continue;
+
                 buffer = buffer.Skip(0 + i).Take(4).ToArray();
                 long wholeAddress = BitConverter.ToInt32(buffer, 0);
                 wholeAddress -= 0x80000000;
@@ -741,10 +754,8 @@ namespace SM64O
                 if (listener != null)
                 {
                     for (int p = 0; p < playerClient.Length; p++)
-                    {
                         if (playerClient[p] != null)
                             readAndSend(offsetsToReadFrom[i], offsetsToWriteTo[i + 8], offsetsToWriteToLength[i + 4], playerClient[p]);
-                    }
                 }
                 else
                     readAndSend(offsetsToReadFrom[i], offsetsToWriteTo[i + 8], offsetsToWriteToLength[i + 4], connection);
@@ -754,17 +765,14 @@ namespace SM64O
 
         public int getRamLength(int offset)
         {
-            for (int i = 0; i < 0x1024; i += 4)
+            const int len = 0x240;
+            for (int i = 0; i < len; i += 4)
             {
                 byte[] buffer = new byte[4];
 
                 _memory.ReadMemory(offset + i, buffer, buffer.Length);
-                buffer = buffer.Reverse().ToArray();
-
-                if (BitConverter.ToString(buffer) == "00-00-00-00")
-                {
+                if ((buffer[0] | buffer[1] | buffer[2] | buffer[3]) == 0)
                     return i;
-                }
             }
             return 0;
         }
@@ -1082,10 +1090,25 @@ namespace SM64O
             return usernames[_r.Next(usernames.Length)];
         }
 
+        private bool _excwritten = false;
         private void playerCheckTimer_Tick(object sender, EventArgs e)
         {
             // We aren't host
             if (listener == null) return;
+
+            //*
+            if (_mainTask != null)
+            {
+                string status = string.Format("Completed: {0} Faulted: {1} Status: {2}", _mainTask.IsCompleted, _mainTask.IsFaulted, _mainTask.Status);
+                if (_mainTask.Exception != null && !_excwritten)
+                {
+                    Program.LogException(_mainTask.Exception);
+                    _excwritten = true;
+                }
+
+                this.Text = "TASK STATUS: " + status;
+            }
+            //*/
 
             for (int i = 0; i < playerClient.Length; i++)
             {
@@ -1279,6 +1302,11 @@ namespace SM64O
                 _upnp.RemoveOurRules();
                 _upnp.StopDiscovery();
             }
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            _closing = true;
         }
     }
 }
