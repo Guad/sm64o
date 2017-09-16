@@ -41,6 +41,7 @@ namespace SM64O
         private const int MaxChatLength = 24;
 
         private UPnPWrapper _upnp;
+        private bool _closing = false;
 
         public Form1()
         {
@@ -689,13 +690,22 @@ namespace SM64O
             _memory.WriteMemory(offset, buffer, buffer.Length);
         }
 
+
+        private Task _mainTask = null;
         private void timer1_Tick()
         {
-            Task.Run(async () =>
+            _mainTask = Task.Run(async () =>
             {
-                while (true)
+                while (!_closing)
                 {
-                    sendAllBytes();
+                    try
+                    {
+                        sendAllBytes();
+                    }
+                    catch (Exception ex)
+                    {
+                        Program.LogException(ex);
+                    }
 
                     await Task.Delay(_updateRate);
                 }
@@ -1080,10 +1090,25 @@ namespace SM64O
             return usernames[_r.Next(usernames.Length)];
         }
 
+        private bool _excwritten = false;
         private void playerCheckTimer_Tick(object sender, EventArgs e)
         {
             // We aren't host
             if (listener == null) return;
+
+            //*
+            if (_mainTask != null)
+            {
+                string status = string.Format("Completed: {0} Faulted: {1} Status: {2}", _mainTask.IsCompleted, _mainTask.IsFaulted, _mainTask.Status);
+                if (_mainTask.Exception != null && !_excwritten)
+                {
+                    Program.LogException(_mainTask.Exception);
+                    _excwritten = true;
+                }
+
+                this.Text = "TASK STATUS: " + status;
+            }
+            //*/
 
             for (int i = 0; i < playerClient.Length; i++)
             {
@@ -1277,6 +1302,11 @@ namespace SM64O
                 _upnp.RemoveOurRules();
                 _upnp.StopDiscovery();
             }
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            _closing = true;
         }
     }
 }
