@@ -30,7 +30,7 @@ namespace SM64O
             string formatted = string.Format("OUT [{0:00}:{1:00}:{2:00}.{3:000}] {{{4}}} ({5}): {6}",
                 now.Hour, now.Minute, now.Second, now.Millisecond,
                 origin,
-                data.Length,
+                packet.Length,
                 data
                 );
 
@@ -48,7 +48,7 @@ namespace SM64O
             string formatted = string.Format("IN  [{0:00}:{1:00}:{2:00}.{3:000}] {{{4}}} ({5}): {6}",
                 now.Hour, now.Minute, now.Second, now.Millisecond,
                 origin,
-                data.Length,
+                packet.Length,
                 data
                 );
 
@@ -66,7 +66,7 @@ namespace SM64O
             string formatted = string.Format("MEM [{0:00}:{1:00}:{2:00}.{3:000}] {{ {4:x} }} ({5}): {6}",
                 now.Hour, now.Minute, now.Second, now.Millisecond,
                 offset,
-                data.Length,
+                packet.Length,
                 data
             );
 
