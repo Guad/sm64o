@@ -112,7 +112,7 @@ namespace SM64O
             // TODO: Change this according to OS
             _memory = new WindowsEmulatorAccessor();
 
-            this.Text = "SM64 Online Tool v1.3.1 Hotfix";
+            this.Text = "Net64 Tool v1.3.1 Hotfix";
         }
 
         private void UpnpOnAvailable(object o, EventArgs eventArgs)
@@ -312,7 +312,7 @@ namespace SM64O
 
                     if (_upnp.UPnPAvailable && !checkBoxLAN.Enabled)
                     {
-                        _upnp.AddPortRule(port, false, "SM64O");
+                        _upnp.AddPortRule(port, false, "Net64");
                         textBoxAddress.Text = _upnp.GetExternalIp();
                     }
 
@@ -325,7 +325,7 @@ namespace SM64O
 
                     if (!checkBoxLAN.Checked)
                     {
-                        toolStripStatusLabel1.Text = "Querying SM64O port service...";
+                        toolStripStatusLabel1.Text = "Querying Net64 port service...";
                         bool success = await NetworkHelper.RequestAssistance(port);
 
                         if (success)

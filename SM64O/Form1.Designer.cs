@@ -289,9 +289,9 @@
             // buttonChat
             // 
             this.buttonChat.Enabled = false;
-            this.buttonChat.Location = new System.Drawing.Point(45, 340);
+            this.buttonChat.Location = new System.Drawing.Point(12, 340);
             this.buttonChat.Name = "buttonChat";
-            this.buttonChat.Size = new System.Drawing.Size(173, 37);
+            this.buttonChat.Size = new System.Drawing.Size(206, 37);
             this.buttonChat.TabIndex = 34;
             this.buttonChat.Text = "Send Message";
             this.buttonChat.UseVisualStyleBackColor = true;
@@ -533,7 +533,7 @@
             // creditsToolStripMenuItem
             // 
             this.creditsToolStripMenuItem.Name = "creditsToolStripMenuItem";
-            this.creditsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.creditsToolStripMenuItem.Size = new System.Drawing.Size(111, 22);
             this.creditsToolStripMenuItem.Text = "Credits";
             this.creditsToolStripMenuItem.Click += new System.EventHandler(this.creditsToolStripMenuItem_Click);
             // 
@@ -551,7 +551,7 @@
             this.MainMenuStrip = this.menuStrip1;
             this.MaximizeBox = false;
             this.Name = "Form1";
-            this.Text = "SM64 Online Tool v1.3.1 Hotfix";
+            this.Text = "Net64 Tool v1.3.1 Hotfix";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form1_FormClosed);
             this.Load += new System.EventHandler(this.Form1_Load);

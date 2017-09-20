@@ -33,7 +33,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>head_wario - Copy.ico</ApplicationIcon>
+    <ApplicationIcon>Net64_Unofficial_Logo_Second_version.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject />
@@ -108,6 +108,7 @@
   <ItemGroup>
     <Content Include="1707.ico" />
     <Content Include="head_wario - Copy.ico" />
+    <Content Include="Net64_Unofficial_Logo_Second_version.ico" />
     <Content Include="Untitled.ico" />
     <None Include="Resources\yahoo.wav" />
     <None Include="Resources\woo.wav" />
