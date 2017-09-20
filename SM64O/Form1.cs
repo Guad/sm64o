@@ -1339,7 +1339,7 @@ namespace SM64O
 
         private void forumToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            System.Diagnostics.Process.Start("https://sm64o.com/forumdisplay.php?fid=11");
+            System.Diagnostics.Process.Start("https://sm64o.com/index.php");
         }
 
         private void discordToolStripMenuItem_Click(object sender, EventArgs e)
