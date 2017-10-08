@@ -66,6 +66,7 @@ namespace SM64O
                 }
                 catch (SocketException)
                 {
+                    Program.LogException(new SocketException());
                 }
             }
 

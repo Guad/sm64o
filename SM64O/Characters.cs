@@ -11,7 +11,7 @@ namespace SM64O
     {
         public static void setMessage(string msg, IEmulatorAccessor mem)
         {
-            int bytesWritten = 0;
+            //int bytesWritten = 0;
             byte[] buffer = Encoding.ASCII.GetBytes(msg.Where(isPrintable).ToArray());
 
             byte[] newArray = new byte[buffer.Length + 4];
@@ -48,42 +48,42 @@ namespace SM64O
         {
             if (character == "Mario")
             {
-                int bytesWritten = 0;
+                //int bytesWritten = 0;
                 mem.WriteMemory(0x365FF3, new byte[] { 0x01 }, 1);
             }
             if (character == "Luigi")
             {
-                int bytesWritten = 0;
+                //int bytesWritten = 0;
                 mem.WriteMemory(0x365FF3, new byte[] { 0x02 }, 1);
             }
             if (character == "Yoshi")
             {
-                int bytesWritten = 0;
+                //int bytesWritten = 0;
                 mem.WriteMemory(0x365FF3, new byte[] { 0x03 }, 1);
             }
             if (character == "Wario")
             {
-                int bytesWritten = 0;
+                //int bytesWritten = 0;
                 mem.WriteMemory(0x365FF3, new byte[] { 0x04 }, 1);
             }
             if (character == "Peach")
             {
-                int bytesWritten = 0;
+                //int bytesWritten = 0;
                 mem.WriteMemory(0x365FF3, new byte[] { 0x05 }, 1);
             }
             if (character == "Toad")
             {
-                int bytesWritten = 0;
+                //int bytesWritten = 0;
                 mem.WriteMemory(0x365FF3, new byte[] { 0x06 }, 1);
             }
             if (character == "Waluigi")
             {
-                int bytesWritten = 0;
+                //int bytesWritten = 0;
                 mem.WriteMemory(0x365FF3, new byte[] { 0x07 }, 1);
             }
             if (character == "Rosalina")
             {
-                int bytesWritten = 0;
+                //int bytesWritten = 0;
                 mem.WriteMemory(0x365FF3, new byte[] { 0x08 }, 1);
             }
         }
