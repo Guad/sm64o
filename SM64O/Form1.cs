@@ -58,9 +58,9 @@ namespace SM64O
 
         public Form1()
         {
-            listener = null;
-            connection = null;
-            playerClient = new Client[23];
+            //listener = null;
+            //connection = null;
+            //playerClient = new Client[23];
 
             InitializeComponent();
 
@@ -833,10 +833,10 @@ namespace SM64O
                 if ((buffer[i] | buffer[i + 1] | buffer[i + 2] | buffer[i + 3]) == 0)
                     continue;
 
-                buffer = buffer.Skip(0 + i).Take(4).ToArray();
+                buffer = buffer.Skip(i).Take(4).ToArray();
                 long wholeAddress = BitConverter.ToInt32(buffer, 0);
                 wholeAddress -= 0x80000000;
-                offsetsToReadFrom[i + 0] = (int)wholeAddress;
+                offsetsToReadFrom[i] = (int)wholeAddress;
                 buffer = originalBuffer;
 
                 buffer = buffer.Skip(4 + i).Take(4).ToArray();
