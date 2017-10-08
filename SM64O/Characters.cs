@@ -25,7 +25,7 @@ namespace SM64O
             }
 
             byte[] overWriteBuffer = new byte[] { 0x00, 0x00, 0x00, 0x00 };
-            overWriteBuffer = overWriteBuffer.Reverse().ToArray();
+            //overWriteBuffer = overWriteBuffer.Reverse().ToArray();
             mem.WriteMemory(0x367680, overWriteBuffer, overWriteBuffer.Length);
         }
 
