@@ -3,8 +3,6 @@ using System.Net;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Hazel;
-using Hazel.Udp;
 
 namespace SM64O
 {
@@ -24,7 +22,7 @@ namespace SM64O
 
         public static async Task<bool> RequestAssistance(int port)
         {
-            if (ConfirmedOpenPort == port)
+            /* if (ConfirmedOpenPort == port)
                 return true;
 
             if (Service == null)
@@ -37,7 +35,7 @@ namespace SM64O
                 Service = new IPEndPoint(address, ServicePort);
             }
 
-            var server = ((UdpConnectionListener) Form1.listener);
+            var server = ((UdpConnectionListener) new ConnectionListener());
 
             if (server == null) return false;
 
@@ -62,12 +60,13 @@ namespace SM64O
 
             if (_success)
                 ConfirmedOpenPort = port;
-
+*/
             return _success;
         }
 
-        private static void DataReceived(object sender, UnconnectedDataReceivedEventArgs e)
+        private static void DataReceived(object sender/*, UnconnectedDataReceivedEventArgs e*/)
         {
+            /*
             // We only want data from the source
             if (e.Sender.GetHashCode() != Service.GetHashCode())
                 return;
@@ -102,8 +101,8 @@ namespace SM64O
 
                 ((UdpConnectionListener)Form1.listener).SendUnconnectedBytes(ack, Service);
                 */
-                _success = true;
-            }
+               // _success = true;
+            //}
         }
 
         private static byte[] BuildStartPacket(short port)

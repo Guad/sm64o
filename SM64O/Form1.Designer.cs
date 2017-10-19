@@ -34,11 +34,11 @@
             this.checkBoxServer = new System.Windows.Forms.CheckBox();
             this.textBoxAddress = new System.Windows.Forms.TextBox();
             this.labelAddress = new System.Windows.Forms.Label();
-            this.numUpDownInterval = new System.Windows.Forms.NumericUpDown();
             this.numericUpDown2 = new System.Windows.Forms.NumericUpDown();
             this.labelPort = new System.Windows.Forms.Label();
             this.labelRateUpdate = new System.Windows.Forms.Label();
             this.listBoxPlayers = new System.Windows.Forms.ListBox();
+            this.textBoxChat = new System.Windows.Forms.TextBox();
             this.colorDialog1 = new System.Windows.Forms.ColorDialog();
             this.comboBoxEmulator = new System.Windows.Forms.ComboBox();
             this.labelEmulator = new System.Windows.Forms.Label();
@@ -51,7 +51,6 @@
             this.buttonChat = new System.Windows.Forms.Button();
             this.usernameBox = new System.Windows.Forms.TextBox();
             this.labelUsername = new System.Windows.Forms.Label();
-            this.playerCheckTimer = new System.Windows.Forms.Timer(this.components);
             this.panel1 = new System.Windows.Forms.Panel();
             this.checkBoxLAN = new System.Windows.Forms.CheckBox();
             this.checkBoxChat = new System.Windows.Forms.CheckBox();
@@ -73,7 +72,6 @@
             this.discordToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.creditsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            ((System.ComponentModel.ISupportInitialize)(this.numUpDownInterval)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownClients)).BeginInit();
             this.panel1.SuspendLayout();
@@ -121,20 +119,6 @@
             this.labelAddress.Size = new System.Drawing.Size(61, 13);
             this.labelAddress.TabIndex = 12;
             this.labelAddress.Text = "IP Address:";
-            // 
-            // numUpDownInterval
-            // 
-            this.numUpDownInterval.Enabled = false;
-            this.numUpDownInterval.Location = new System.Drawing.Point(227, 122);
-            this.numUpDownInterval.Name = "numUpDownInterval";
-            this.numUpDownInterval.Size = new System.Drawing.Size(53, 20);
-            this.numUpDownInterval.TabIndex = 14;
-            this.numUpDownInterval.Value = new decimal(new int[] {
-            16,
-            0,
-            0,
-            0});
-            this.numUpDownInterval.ValueChanged += new System.EventHandler(this.numericUpDown1_ValueChanged);
             // 
             // numericUpDown2
             // 
@@ -184,6 +168,18 @@
             this.listBoxPlayers.Size = new System.Drawing.Size(268, 238);
             this.listBoxPlayers.TabIndex = 13;
             this.listBoxPlayers.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.listBox1_MouseDoubleClick);
+            // 
+            // textBoxChat
+            // 
+            this.textBoxChat.Multiline = true;
+            this.textBoxChat.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.textBoxChat.ReadOnly = true;
+            this.textBoxChat.Location = new System.Drawing.Point(13, 384);
+            this.textBoxChat.Name = "textBoxChat";
+            this.textBoxChat.Size = new System.Drawing.Size(595, 300);
+            this.textBoxChat.TabIndex = 13;
+            this.textBoxChat.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.listBox1_MouseDoubleClick);
+            this.textBoxChat.Font = new System.Drawing.Font("Arial", 12);
             // 
             // comboBoxEmulator
             // 
@@ -260,8 +256,9 @@
             this.numUpDownClients.Name = "numUpDownClients";
             this.numUpDownClients.Size = new System.Drawing.Size(163, 20);
             this.numUpDownClients.TabIndex = 31;
+            this.numUpDownClients.Maximum = 24;
             this.numUpDownClients.Value = new decimal(new int[] {
-            23,
+            24,
             0,
             0,
             0});
@@ -313,11 +310,6 @@
             this.labelUsername.TabIndex = 36;
             this.labelUsername.Text = "Username:";
             // 
-            // playerCheckTimer
-            // 
-            this.playerCheckTimer.Interval = 1000;
-            this.playerCheckTimer.Tick += new System.EventHandler(this.playerCheckTimer_Tick);
-            // 
             // panel1
             // 
             this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
@@ -329,7 +321,6 @@
             this.panel1.Controls.Add(this.usernameBox);
             this.panel1.Controls.Add(this.checkBoxServer);
             this.panel1.Controls.Add(this.textBoxAddress);
-            this.panel1.Controls.Add(this.numUpDownInterval);
             this.panel1.Controls.Add(this.labelRateUpdate);
             this.panel1.Controls.Add(this.numericUpDown2);
             this.panel1.Controls.Add(this.labelPort);
@@ -403,13 +394,13 @@
             this.gamemodeBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.gamemodeBox.FormattingEnabled = true;
             this.gamemodeBox.Items.AddRange(new object[] {
-            "Normal Mode",
+            "Normal Mode"/*, // can we please just comment them out to prevent confusion?
             "3rd Person Shooter",
             "No Interactions",
             "Prop Hunt",
             "Boss Rush",
             "Tag",
-            "Hide & Seek"});
+            "Hide & Seek"*/});
             this.gamemodeBox.Location = new System.Drawing.Point(119, 40);
             this.gamemodeBox.Name = "gamemodeBox";
             this.gamemodeBox.Size = new System.Drawing.Size(163, 21);
@@ -473,6 +464,7 @@
             this.backgroundPanel.Controls.Add(this.chatBox);
             this.backgroundPanel.Controls.Add(this.buttonChat);
             this.backgroundPanel.Controls.Add(this.menuStrip1);
+            this.backgroundPanel.Controls.Add(this.textBoxChat);
             this.backgroundPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.backgroundPanel.Location = new System.Drawing.Point(0, 0);
             this.backgroundPanel.Name = "backgroundPanel";
@@ -541,7 +533,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(618, 409);
+            this.ClientSize = new System.Drawing.Size(618, 710);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.labelServerConf);
             this.Controls.Add(this.labelConnectionConf);
@@ -551,11 +543,10 @@
             this.MainMenuStrip = this.menuStrip1;
             this.MaximizeBox = false;
             this.Name = "Form1";
-            this.Text = "Net64 Tool v1.3.1 Hotfix";
+            this.Text = "Net64 Tool v" + Form1.MAJOR_VERSION + "." + Form1.MINOR_VERSION;
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form1_FormClosed);
             this.Load += new System.EventHandler(this.Form1_Load);
-            ((System.ComponentModel.ISupportInitialize)(this.numUpDownInterval)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numUpDownClients)).EndInit();
             this.panel1.ResumeLayout(false);
@@ -579,11 +570,11 @@
         private System.Windows.Forms.CheckBox checkBoxServer;
         private System.Windows.Forms.TextBox textBoxAddress;
         private System.Windows.Forms.Label labelAddress;
-        private System.Windows.Forms.NumericUpDown numUpDownInterval;
         private System.Windows.Forms.NumericUpDown numericUpDown2;
         private System.Windows.Forms.Label labelPort;
         private System.Windows.Forms.Label labelRateUpdate;
-        private System.Windows.Forms.ListBox listBoxPlayers;
+        public System.Windows.Forms.ListBox listBoxPlayers;
+        private System.Windows.Forms.TextBox textBoxChat;
         private System.Windows.Forms.ColorDialog colorDialog1;
         private System.Windows.Forms.ComboBox comboBoxEmulator;
         private System.Windows.Forms.Label labelEmulator;
@@ -596,7 +587,6 @@
         private System.Windows.Forms.Button buttonChat;
         private System.Windows.Forms.TextBox usernameBox;
         private System.Windows.Forms.Label labelUsername;
-        private System.Windows.Forms.Timer playerCheckTimer;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Label labelConnectionConf;
         private System.Windows.Forms.Panel panel2;

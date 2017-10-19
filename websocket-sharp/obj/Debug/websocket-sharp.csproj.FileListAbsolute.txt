@@ -1,0 +1,5 @@
+D:\SMMDB\sm64o\websocket-sharp\bin\Debug\websocket-sharp.dll
+D:\SMMDB\sm64o\websocket-sharp\bin\Debug\websocket-sharp.pdb
+D:\SMMDB\sm64o\websocket-sharp\obj\Debug\ResolveAssemblyReference.cache
+D:\SMMDB\sm64o\websocket-sharp\obj\Debug\websocket-sharp.dll
+D:\SMMDB\sm64o\websocket-sharp\obj\Debug\websocket-sharp.pdb

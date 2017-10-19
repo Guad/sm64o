@@ -132,8 +132,8 @@ namespace SM64O
         {
             Devices.Add(deviceEventArgs.Device);
 
-            if (Devices.Count == 1)
-                Available?.Invoke(this, EventArgs.Empty);
+            if (Devices.Count == 1) {} // TODO this didn't want to compile for me
+                // Available?.Invoke(this, EventArgs.Empty);
         }
     }
 }
