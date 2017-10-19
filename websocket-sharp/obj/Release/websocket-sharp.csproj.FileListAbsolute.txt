@@ -1,0 +1,3 @@
+D:\SMMDB\sm64o\websocket-sharp\bin\Release\websocket-sharp.dll
+D:\SMMDB\sm64o\websocket-sharp\obj\Release\ResolveAssemblyReference.cache
+D:\SMMDB\sm64o\websocket-sharp\obj\Release\websocket-sharp.dll
