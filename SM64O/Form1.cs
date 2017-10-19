@@ -23,8 +23,10 @@ namespace SM64O
 {
     public partial class Form1 : Form
     {
-        public const int MAJOR_VERSION = 0;
-        public const int MINOR_VERSION = 4;
+        public const int MAJOR_VERSION = 2;
+        public const int MINOR_VERSION = 0;
+        public const int COMPAT_MAJOR_VERSION = 0;
+        public const int COMPAT_MINOR_VERSION = 4;
         private const int UPDATE_RATE = 24;
         public const int MAX_CHAT_LENGTH = 24;
         public const int HANDSHAKE_LENGTH = MAX_CHAT_LENGTH + 5;
@@ -103,7 +105,7 @@ namespace SM64O
             // TODO: Change this according to OS
             _memory = new WindowsEmulatorAccessor();
 
-            this.Text = "Net64 Tool v1.3.1 Hotfix";
+            this.Text = "Net64 Tool v" + Form1.MAJOR_VERSION + "." + Form1.MINOR_VERSION + " Hotfix";
         }
 
         private void UpnpOnAvailable(object o, EventArgs eventArgs)

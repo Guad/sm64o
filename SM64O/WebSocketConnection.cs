@@ -121,7 +121,7 @@ namespace SM64O {
         {
             _client.Major = payload[0];
             _client.Minor = payload[1];
-            if ((int)_client.Major != Form1.MAJOR_VERSION || (int)_client.Minor != Form1.MINOR_VERSION) {
+            if ((int)_client.Major != Form1.COMPAT_MAJOR_VERSION || (int)_client.Minor != Form1.COMPAT_MINOR_VERSION) {
                 byte[] res = new byte[]{ _client.Major, _client.Minor };
                 _client.SendPacket(PacketType.WrongVersion, res);
                 return;

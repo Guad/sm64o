@@ -36,8 +36,8 @@ namespace SM64O
 
                 byte[] payload = new byte[Form1.HANDSHAKE_LENGTH];
                 payload[0] = (byte)PacketType.Handshake;
-                payload[1] = (byte)Form1.MAJOR_VERSION;
-                payload[2] = (byte)Form1.MINOR_VERSION;
+                payload[1] = (byte)Form1.COMPAT_MAJOR_VERSION;
+                payload[2] = (byte)Form1.COMPAT_MINOR_VERSION;
                 payload[3] = (byte)_gui.GetCharacter();
 
                 string username = _gui.GetUsername();
