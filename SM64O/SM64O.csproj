@@ -53,8 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Characters.cs" />
-    <Compile Include="Client.cs" />
-    <Compile Include="ConnectionExtensions.cs" />
+    <Compile Include="ServerConnection.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -69,6 +68,8 @@
       <DependentUpon>KickBanForm.cs</DependentUpon>
     </Compile>
     <Compile Include="NetworkHelper.cs" />
+    <Compile Include="Client.cs" />
+    <Compile Include="WebSocketConnection.cs" />
     <Compile Include="PacketType.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -129,13 +130,13 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Hazel\Hazel.csproj">
-      <Project>{02cfbd30-d77d-400f-94b2-700f60efdd7f}</Project>
-      <Name>Hazel</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Mono.Nat\Mono.Nat.csproj">
       <Project>{a0f2353d-730f-4f67-bea3-ad5de270c72d}</Project>
       <Name>Mono.Nat</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\websocket-sharp\websocket-sharp.csproj">
+      <Project>{B357BAC7-529E-4D81-A0D2-71041B19C8DE}</Project>
+      <Name>WebSocketSharp</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
