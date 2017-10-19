@@ -1,5 +1,6 @@
 # Visual Studio droppings
 .vs/
+.vscode/
 
 # don't commit binaries (they change too much)
 SM64O/bin/
