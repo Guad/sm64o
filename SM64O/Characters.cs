@@ -44,53 +44,9 @@ namespace SM64O
             return false;
         }
 
-        public static void setCharacter(string character, IEmulatorAccessor mem)
+        public static void setCharacter(int id, IEmulatorAccessor mem)
         {
-            if (character == "Mario")
-            {
-                //int bytesWritten = 0;
-                mem.WriteMemory(0x365FF3, new byte[] { 0x01 }, 1);
-            }
-            if (character == "Luigi")
-            {
-                //int bytesWritten = 0;
-                mem.WriteMemory(0x365FF3, new byte[] { 0x02 }, 1);
-            }
-            if (character == "Yoshi")
-            {
-                //int bytesWritten = 0;
-                mem.WriteMemory(0x365FF3, new byte[] { 0x03 }, 1);
-            }
-            if (character == "Wario")
-            {
-                //int bytesWritten = 0;
-                mem.WriteMemory(0x365FF3, new byte[] { 0x04 }, 1);
-            }
-            if (character == "Peach")
-            {
-                //int bytesWritten = 0;
-                mem.WriteMemory(0x365FF3, new byte[] { 0x05 }, 1);
-            }
-            if (character == "Toad")
-            {
-                //int bytesWritten = 0;
-                mem.WriteMemory(0x365FF3, new byte[] { 0x06 }, 1);
-            }
-            if (character == "Waluigi")
-            {
-                //int bytesWritten = 0;
-                mem.WriteMemory(0x365FF3, new byte[] { 0x07 }, 1);
-            }
-            if (character == "Rosalina")
-            {
-                //int bytesWritten = 0;
-                mem.WriteMemory(0x365FF3, new byte[] { 0x08 }, 1);
-            }
-        }
-
-        public static void setCharacterAll(int character, IEmulatorAccessor mem)
-        {
-            mem.WriteMemory(0x365FF3, new byte[] { (byte) character }, 1);
+            mem.WriteMemory(0x365FF3, new byte[] { (byte) (id + 1) }, 1);
         }
     }
 }
