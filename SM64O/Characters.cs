@@ -21,12 +21,12 @@ namespace SM64O
             {
                 byte[] newBuffer = newArray.Skip(i).Take(4).ToArray();
                 newBuffer = newBuffer.Reverse().ToArray();
-                mem.WriteMemory(0x367684 + i, newBuffer, newBuffer.Length);
+                mem.WriteMemory(0xFF7684 + i, newBuffer, newBuffer.Length);
             }
 
             byte[] overWriteBuffer = new byte[] { 0x00, 0x00, 0x00, 0x00 };
             //overWriteBuffer = overWriteBuffer.Reverse().ToArray();
-            mem.WriteMemory(0x367680, overWriteBuffer, overWriteBuffer.Length);
+            mem.WriteMemory(0xFF7680, overWriteBuffer, overWriteBuffer.Length);
         }
 
 
@@ -46,7 +46,7 @@ namespace SM64O
 
         public static void setCharacter(int id, IEmulatorAccessor mem)
         {
-            mem.WriteMemory(0x365FF3, new byte[] { (byte) (id + 1) }, 1);
+            mem.WriteMemory(0xFF5FF3, new byte[] { (byte) (id + 1) }, 1);
         }
     }
 }

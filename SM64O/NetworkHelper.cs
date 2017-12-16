@@ -113,7 +113,7 @@ namespace SM64O
             buffer[0] = 0x6e; // 'n'
             buffer[1] = 0x65; // 'e'
             buffer[2] = 0x74; // 't'
-            buffer[3] = 0x36; // '6'
+            buffer[3] = 0xFF; // '6'
             buffer[4] = 0x34; // '4'
             buffer[5] = 0x69; // 'i'
             buffer[6] = 0x70; // 'p'

@@ -488,7 +488,7 @@ namespace SM64O
 
             if (checkBoxServer.Checked)
             {
-                writeValue(new byte[] { 0x00, 0x00, 0x00, 0x01 }, 0x365FFC);
+                writeValue(new byte[] { 0x00, 0x00, 0x00, 0x01 }, 0xFF5FFC);
             }
 
             Settings sets = new Settings();
@@ -666,7 +666,7 @@ namespace SM64O
 
             labelPlayersOnline.Text = "Players Online: " + playerClient.Count(c => c != null) + "/" + playerClient.Length;
 
-            const int playersPositionsStart = 0x36790C;
+            const int playersPositionsStart = 0xFF790C;
             const int playerPositionsSize = 0x100;
             // 0xc800
             byte[] buffer = new byte[] { 0x00, 0x00, 0x00, 0xFD };
@@ -750,12 +750,12 @@ namespace SM64O
         {
             if (data.Length == 1)
             {
-                _memory.WriteMemory(0x367703, data, data.Length);
+                _memory.WriteMemory(0xFF7703, data, data.Length);
                 return;
             }
 
             int offset = BitConverter.ToInt32(data, 0);
-            if (offset < 0x365ff0 || offset > 0x369000) // Only allow 8 MB N64 RAM addresses
+            if (offset < 0xFF5ff0 || offset > 0xFF9000) // Only allow 8 MB N64 RAM addresses
                 return; //  Kaze: retrict it to 365ff0 to 369000
 
             byte[] buffer = new byte[data.Length - 4];
@@ -839,7 +839,7 @@ namespace SM64O
         // not touching this
         public void sendAllBytes()
         {
-            //int freeRamLength = getRamLength(0x367400);
+            //int freeRamLength = getRamLength(0xFF7400);
             const int len = 0x240;
 
             int[] offsetsToReadFrom = new int[len];
@@ -847,7 +847,7 @@ namespace SM64O
             int[] offsetsToWriteTo = new int[len];
 
             byte[] originalBuffer = new byte[len];
-            _memory.ReadMemory(0x367400, originalBuffer, originalBuffer.Length);
+            _memory.ReadMemory(0xFF7400, originalBuffer, originalBuffer.Length);
 
             byte[] buffer = originalBuffer;
 
@@ -1039,16 +1039,16 @@ namespace SM64O
 
             buffer[0] = (byte) (gamemodeBox.SelectedIndex + 1);
 
-            _memory.WriteMemory(0x367710, new byte[0x0B], 0x0B); // Clear gamemode memory
-            _memory.WriteMemory(0x365ff4, buffer, buffer.Length);
+            _memory.WriteMemory(0xFF7710, new byte[0x0B], 0x0B); // Clear gamemode memory
+            _memory.WriteMemory(0xFF5ff4, buffer, buffer.Length);
 
             if (playerClient != null)
                 for (int p = 0; p < playerClient.Length; p++)
                 {
                     if (playerClient[p] != null)
                     {
-                        readAndSend(0x365FF4, 0x365FF4, 4, playerClient[p]);
-                        readAndSend(0x367710, 0x367710, 0x0B, playerClient[p]);
+                        readAndSend(0xFF5FF4, 0xFF5FF4, 4, playerClient[p]);
+                        readAndSend(0xFF7710, 0xFF7710, 0x0B, playerClient[p]);
                     }
                 }
 
@@ -1198,7 +1198,7 @@ namespace SM64O
             const int maxPlayers = 27;
             for (int i = 0; i < maxPlayers; i++)
             {
-                const int playersPositionsStart = 0x36790C;
+                const int playersPositionsStart = 0xFF790C;
                 const int playerPositionsSize = 0x100;
 
                 // 0xc800
