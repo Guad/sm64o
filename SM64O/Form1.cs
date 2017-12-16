@@ -64,6 +64,9 @@ namespace SM64O
 
             InitializeComponent();
 
+            SetFormCharacters();
+            SetFormGamemodes();
+
             _upnp = new UPnPWrapper();
             _upnp.Available += UpnpOnAvailable;
             if (_upnp.UPnPAvailable)
@@ -113,6 +116,26 @@ namespace SM64O
             _memory = new WindowsEmulatorAccessor();
 
             this.Text = "Net64 Tool v1.3.1 Hotfix";
+        }
+
+        private void SetFormCharacters()
+        {
+            comboBoxChar.Items.Clear();
+
+            for (int index = 0; index < Constants.Characters.Length; index++)
+            {
+                comboBoxChar.Items.Add(Constants.Characters[index]);
+            }
+        }
+
+        private void SetFormGamemodes()
+        {
+            gamemodeBox.Items.Clear();
+
+            for (int index = 0; index < Constants.Gamemodes.Length; index++)
+            {
+                gamemodeBox.Items.Add(Constants.Gamemodes[index]);
+            }
         }
 
         private void UpnpOnAvailable(object o, EventArgs eventArgs)
@@ -457,7 +480,7 @@ namespace SM64O
 
             buttonReset.Enabled = true;
 
-            Characters.setCharacter(comboBoxChar.SelectedItem.ToString(), _memory);
+            Characters.setCharacter(comboBoxChar.SelectedIndex, _memory);
 
             loadPatches();
 
@@ -1014,32 +1037,10 @@ namespace SM64O
         {
             byte[] buffer = new byte[1];
 
-            switch (gamemodeBox.SelectedIndex)
-            {
-                case 0:
-                    buffer[0] = 1;
-                    break;
-                case 1:
-                    buffer[0] = 2;
-                    break;
-                case 2:
-                    buffer[0] = 3;
-                    break;
-                case 3:
-                    buffer[0] = 4;
-                    break;
-                case 4:
-                    buffer[0] = 5;
-                    break;
-                case 5:
-                    buffer[0] = 6;
-                    break;
-                case 6:
-                    buffer[0] = 7;
-                    break;
-            }
+            buffer[0] = (byte) (gamemodeBox.SelectedIndex + 1);
 
-            _memory.WriteMemory(0x365FF7, buffer, buffer.Length);
+            _memory.WriteMemory(0x367710, new byte[0x0B], 0x0B); // Clear gamemode memory
+            _memory.WriteMemory(0x365ff4, buffer, buffer.Length);
 
             if (playerClient != null)
                 for (int p = 0; p < playerClient.Length; p++)
@@ -1047,6 +1048,7 @@ namespace SM64O
                     if (playerClient[p] != null)
                     {
                         readAndSend(0x365FF4, 0x365FF4, 4, playerClient[p]);
+                        readAndSend(0x367710, 0x367710, 0x0B, playerClient[p]);
                     }
                 }
 
@@ -1185,7 +1187,7 @@ namespace SM64O
             if (connection == null && listener == null)
                 return; // We are not in a server yet
 
-            Characters.setCharacterAll(comboBoxChar.SelectedIndex + 1, _memory);
+            Characters.setCharacter(comboBoxChar.SelectedIndex + 1, _memory);
 
             if (connection != null) // we are a client, notify host to update playerlist
                 connection.SendBytes(PacketType.CharacterSwitch, new byte[] { (byte)(comboBoxChar.SelectedIndex) });
@@ -1253,33 +1255,9 @@ namespace SM64O
         private string getCharacterName(int id)
         {
             string character = "custom";
-            switch (id)
-            {
-                case 0:
-                    character = "Mario";
-                    break;
-                case 1:
-                    character = "Luigi";
-                    break;
-                case 2:
-                    character = "Yoshi";
-                    break;
-                case 3:
-                    character = "Wario";
-                    break;
-                case 4:
-                    character = "Peach";
-                    break;
-                case 5:
-                    character = "Toad";
-                    break;
-                case 6:
-                    character = "Waluigi";
-                    break;
-                case 7:
-                    character = "Rosalina";
-                    break;
-            }
+
+            if (id >= 0 && id < Constants.Characters.Length)
+                character = Constants.Characters[id];
 
             return character;
         }
